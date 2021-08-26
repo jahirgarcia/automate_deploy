@@ -1,0 +1,26 @@
+name: Build and push to DockerHub
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  Build-Push-DockerHub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Parse repository name
+        id: repo-parser
+        run: echo "::set-output name=repo-name::$(echo ${{ github.repository }} | tr [:upper:] [:lower:])"
+      - name: Build and push to DockerHub
+        uses: docker/build-push-action@v2
+        env:
+          repo: ${{ steps.repo-parser.outputs.repo-name }}
+        with:
+          push: true
+          tags: ${{ env.repo }}:latest,${{ env.repo }}:${{ github.sha }}
